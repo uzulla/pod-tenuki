@@ -40,8 +40,7 @@ class GeminiTranscriber:
         genai.configure(api_key=self.api_key)
         
         # Default model for transcription
-        self.model_name = "gemini-2.0-flash"
-        self.client = genai.Client()
+        self.model_name = "gemini-1.5-flash"
     
     def transcribe_audio(
         self,
@@ -78,39 +77,22 @@ class GeminiTranscriber:
             # Check file size to determine upload method
             file_size = os.path.getsize(audio_file)
             
-            if file_size > 20 * 1024 * 1024:  # 20 MB
-                # For large files, use the File API
-                logger.info(f"File size ({file_size / (1024 * 1024):.2f} MB) exceeds 20 MB, using File API")
-                uploaded_file = self.client.files.upload(file=audio_file)
-                
-                # Create prompt for transcription
-                prompt = f"Please provide a complete and accurate transcript of this audio file. The language is {language_code.split('-')[0]}."
-                
-                # Generate content with the uploaded file
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=[prompt, uploaded_file]
-                )
-                
-                # Delete the uploaded file after transcription
-                self.client.files.delete(name=uploaded_file.name)
-            else:
-                # For smaller files, use inline data
-                logger.info(f"File size ({file_size / (1024 * 1024):.2f} MB) is under 20 MB, using inline data")
-                with open(audio_file, "rb") as f:
-                    audio_bytes = f.read()
-                
-                # Create prompt for transcription
-                prompt = f"Please provide a complete and accurate transcript of this audio file. The language is {language_code.split('-')[0]}."
-                
-                # Generate content with the audio bytes
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=[
-                        prompt,
-                        types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
-                    ]
-                )
+            # For all files, use inline data
+            logger.info(f"File size: {file_size / (1024 * 1024):.2f} MB")
+            with open(audio_file, "rb") as f:
+                audio_bytes = f.read()
+            
+            # Create prompt for transcription
+            prompt = f"Please provide a complete and accurate transcript of this audio file. The language is {language_code.split('-')[0]}."
+            
+            # Generate content with the audio bytes
+            response = genai.generate_content(
+                model=self.model_name,
+                contents=[
+                    prompt,
+                    {"mime_type": mime_type, "data": audio_bytes}
+                ]
+            )
             
             # Extract the transcription from the response
             transcription = response.text
