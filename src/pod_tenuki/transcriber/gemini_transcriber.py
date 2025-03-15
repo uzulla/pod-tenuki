@@ -41,6 +41,7 @@ class GeminiTranscriber:
         
         # Default model for transcription
         self.model_name = "gemini-1.5-flash"
+        self.client = genai.Client(api_key=self.api_key)
     
     def transcribe_audio(
         self,
@@ -86,7 +87,7 @@ class GeminiTranscriber:
             prompt = f"Please provide a complete and accurate transcript of this audio file. The language is {language_code.split('-')[0]}."
             
             # Generate content with the audio bytes
-            response = genai.generate_content(
+            response = self.client.generate_content(
                 model=self.model_name,
                 contents=[
                     {"text": prompt},
