@@ -89,7 +89,7 @@ class GeminiTranscriber:
             response = genai.generate_content(
                 model=self.model_name,
                 contents=[
-                    prompt,
+                    {"text": prompt},
                     {"mime_type": mime_type, "data": audio_bytes}
                 ]
             )
