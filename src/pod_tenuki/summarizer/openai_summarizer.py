@@ -11,6 +11,7 @@ from typing import Dict, Any, Optional, Tuple
 import openai
 
 from pod_tenuki.utils.config import OPENAI_API_KEY
+from pod_tenuki.utils.cost_tracker import cost_tracker
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -89,6 +90,9 @@ class OpenAISummarizer:
                 max_tokens=1024,
                 temperature=0.7,
             )
+            
+            # Track API usage cost
+            cost_tracker.track_openai_usage(response, model)
             
             # Extract the response text
             response_text = response.choices[0].message.content.strip()

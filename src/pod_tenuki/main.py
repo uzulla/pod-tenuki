@@ -16,6 +16,7 @@ from typing import Optional, List, Dict, Any, Tuple
 
 from pod_tenuki.utils.logger import setup_logger
 from pod_tenuki.utils.config import validate_config
+from pod_tenuki.utils.cost_tracker import cost_tracker
 from pod_tenuki.audio_converter import process_audio_file
 from pod_tenuki.transcriber import transcribe_audio_file
 from pod_tenuki.summarizer import summarize_transcript
@@ -135,7 +136,7 @@ def transcribe_audio(
     skip_transcription: bool = False,
 ) -> Optional[str]:
     """
-    Transcribe an audio file using Google Cloud Speech-to-Text.
+    Transcribe an audio file using Gemini API.
     
     Args:
         audio_file: Path to the audio file.
@@ -295,6 +296,11 @@ def main() -> int:
         if title and description and not args.skip_summarization:
             logger.info(f"Podcast title: {title}")
             logger.info(f"Summary file: {summary_file}")
+        
+        # Print API usage costs
+        logger.info("\n" + "=" * 50)
+        logger.info(cost_tracker.format_cost_summary())
+        logger.info("=" * 50)
         
         return 0
     

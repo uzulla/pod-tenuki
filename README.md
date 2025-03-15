@@ -3,8 +3,9 @@
 Pod-Tenuki is a command-line tool for processing podcast audio files. It provides the following features:
 
 1. **Audio Conversion**: Convert audio files (MP3, MP4, m4a, etc.) using the Auphonic API with specified presets
-2. **Transcription**: Transcribe audio files to text using Google Cloud Speech-to-Text API
+2. **Transcription**: Transcribe audio files to text using Google Gemini API
 3. **Summarization**: Generate podcast titles and descriptions from transcriptions using OpenAI API
+4. **Cost Tracking**: Track and display API usage costs for Gemini and OpenAI APIs
 
 ## Installation
 
@@ -12,7 +13,7 @@ Pod-Tenuki is a command-line tool for processing podcast audio files. It provide
 
 - Python 3.8 or higher
 - Auphonic API key
-- Google Cloud API credentials
+- Gemini API key
 - OpenAI API key
 
 ### Setup
@@ -81,23 +82,45 @@ optional arguments:
 
 ### Examples
 
-#### Convert audio only:
+#### Using the main CLI tool:
+
+##### Convert audio only:
 
 ```bash
 pod-tenuki --skip-transcription --skip-summarization audio_file.mp3
 ```
 
-#### Transcribe audio only (skip conversion):
+##### Transcribe audio only (skip conversion):
 
 ```bash
 pod-tenuki --skip-conversion --skip-summarization audio_file.mp3
 ```
 
-#### Summarize an existing transcript:
+##### Summarize an existing transcript:
 
 ```bash
 pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
 # Note: This assumes audio_file.txt exists
+```
+
+#### Using individual CLI tools:
+
+##### Convert audio only:
+
+```bash
+pod-tenuki-convert audio_file.mp3
+```
+
+##### Transcribe audio only:
+
+```bash
+pod-tenuki-transcribe audio_file.mp3
+```
+
+##### Summarize an existing transcript:
+
+```bash
+pod-tenuki-summarize audio_file.txt
 ```
 
 #### Specify output directory:
@@ -130,16 +153,14 @@ pod-tenuki --language en-US audio_file.mp3
 AUPHONIC_API_KEY=your_auphonic_api_key
 ```
 
-### Google Cloud API
+### Gemini API
 
-1. Create a Google Cloud project
-2. Enable the Speech-to-Text API
-3. Create a service account and download the JSON key file
-4. Add the path to the key file and project ID to your `.env` file:
+1. Create a Google AI Studio account at [ai.google.dev](https://ai.google.dev/)
+2. Get your API key from the [API keys section](https://ai.google.dev/api/register)
+3. Add the API key to your `.env` file:
 
 ```
-GOOGLE_APPLICATION_CREDENTIALS=path_to_your_google_credentials_json_file
-GOOGLE_CLOUD_PROJECT=your_google_cloud_project_id
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### OpenAI API
@@ -159,6 +180,21 @@ For an input file `podcast.mp3`, the following files will be created:
 - Converted audio file(s): Depends on the Auphonic preset settings
 - Transcript: `podcast.txt`
 - Summary: `podcast.summary.md`
+
+## Cost Tracking
+
+The application tracks and displays API usage costs at the end of processing:
+
+```
+API USAGE COSTS:
+OpenAI API:
+  - gpt-3.5-turbo: 1234 input tokens, 567 output tokens, $0.0012
+Gemini API:
+  - Audio transcription: 30.50 minutes, $0.0763
+Total cost: $0.0775
+```
+
+This helps you monitor the costs associated with processing your podcast files.
 
 ## License
 

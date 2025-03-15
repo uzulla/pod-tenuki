@@ -9,9 +9,20 @@ description = "A tool for processing podcast audio files"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
+dependencies = [
+    "requests>=2.28.0",
+    "google-generativeai>=0.8.0",
+    "openai>=1.0.0",
+    "python-dotenv>=0.21.0",
+    "pydub>=0.25.1",
+    "tqdm>=4.64.1",
+]
 authors = [
-    {name = "Devin AI", email = "devin-ai-integration[bot]@users.noreply.github.com"}
+    {name = "Devin AI", email = "devin-ai-integration@users.noreply.github.com"}
 ]
 
 [project.scripts]
 pod-tenuki = "pod_tenuki.main:main"
+pod-tenuki-convert = "pod_tenuki.cli.convert:main"
+pod-tenuki-transcribe = "pod_tenuki.cli.transcribe:main"
+pod-tenuki-summarize = "pod_tenuki.cli.summarize:main"
