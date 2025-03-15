@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pod-tenuki"
+version = "0.1.0"
+description = "A tool for processing podcast audio files"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Devin AI", email = "devin-ai-integration[bot]@users.noreply.github.com"}
+]
+
+[project.scripts]
+pod-tenuki = "pod_tenuki.main:main"
