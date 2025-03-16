@@ -15,6 +15,23 @@ Pod-Tenukiは、ポッドキャストの音声ファイルを処理するため�
 - Auphonic APIキー
 - Gemini APIキー
 - OpenAI APIキー
+- ffmpeg（音声処理に必要）
+
+#### ffmpegのインストール
+
+このツールは音声処理のために `ffmpeg` を必要とします。
+
+macOSの場合:
+```bash
+brew install ffmpeg
+```
+
+Linuxの場合:
+```bash
+sudo apt-get install ffmpeg
+```
+
+注意: 以前は `pydub` ライブラリを使用していましたが、`pyaudioop` モジュールの互換性の問題により削除されました。現在は `ffmpeg` を直接使用しています。
 
 ### セットアップ
 
