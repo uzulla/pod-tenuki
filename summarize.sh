@@ -49,7 +49,7 @@ pip3 install -e .
 
 # Install additional audio processing dependencies
 echo "Installing audio processing dependencies..."
-pip3 install pydub ffmpeg-python
+pip3 install pydub ffmpeg-python simpleaudio pyaudio
 
 # Run the pod-tenuki-summarize tool with the provided arguments
 echo "Running pod-tenuki-summarize with $TRANSCRIPT_FILE..."
