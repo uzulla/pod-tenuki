@@ -50,7 +50,12 @@ pip3 install -e .
 
 # Install additional audio processing dependencies
 echo "Installing audio processing dependencies..."
-pip3 install pydub ffmpeg-python simpleaudio pyaudio
+pip3 install ffmpeg-python simpleaudio pyaudio
+
+# Ensure ffmpeg is available
+if ! command -v ffmpeg &> /dev/null; then
+    echo "Warning: ffmpeg not found. Audio duration detection may not work correctly."
+fi
 
 # Run the pod-tenuki-transcribe tool with the provided arguments
 echo "Running pod-tenuki-transcribe with $AUDIO_FILE..."
