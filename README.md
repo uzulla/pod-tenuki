@@ -1,153 +1,153 @@
 # Pod-Tenuki
 
-Pod-Tenuki is a command-line tool for processing podcast audio files. It provides the following features:
+Pod-Tenukiは、ポッドキャストの音声ファイルを処理するためのコマンドラインツールです。以下の機能を提供します：
 
-1. **Audio Conversion**: Convert audio files (MP3, MP4, m4a, etc.) using the Auphonic API with specified presets
-2. **Transcription**: Transcribe audio files to text using Google Gemini API
-3. **Summarization**: Generate podcast titles and descriptions from transcriptions using OpenAI API
-4. **Cost Tracking**: Track and display API usage costs for Gemini and OpenAI APIs
+1. **音声変換**: Auphonic APIを使用して音声ファイル（MP3、MP4、m4aなど）を指定のプリセットで変換
+2. **文字起こし**: Google Gemini APIを使用して音声ファイルをテキストに変換
+3. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
+4. **コスト追跡**: GeminiとOpenAI APIの使用コストを追跡して表示
 
-## Installation
+## インストール
 
-### Prerequisites
+### 前提条件
 
-- Python 3.8 or higher
-- Auphonic API key
-- Gemini API key
-- OpenAI API key
+- Python 3.8以上
+- Auphonic APIキー
+- Gemini APIキー
+- OpenAI APIキー
 
-### Setup
+### セットアップ
 
-1. Clone the repository:
+1. リポジトリをクローン：
 
 ```bash
 git clone https://github.com/uzulla/pod-tenuki.git
 cd pod-tenuki
 ```
 
-2. Install the package:
+2. パッケージをインストール：
 
 ```bash
 pip install -e .
 ```
 
-3. Create a `.env` file with your API keys:
+3. APIキーを含む`.env`ファイルを作成：
 
 ```bash
 cp .env.example .env
-# Edit .env with your API keys
+# .envファイルを編集してAPIキーを追加
 ```
 
-## Usage
+## 使用方法
 
-### Basic Usage
+### 基本的な使い方
 
 ```bash
 pod-tenuki /path/to/your/audio_file.mp3
 ```
 
-This will:
-1. Convert the audio file using the default Auphonic preset
-2. Transcribe the converted audio using Google Cloud Speech-to-Text
-3. Generate a podcast title and description from the transcription
+これにより以下が実行されます：
+1. デフォルトのAuphonicプリセットを使用して音声ファイルを変換
+2. Google Gemini APIを使用して変換された音声を文字起こし
+3. 文字起こしからポッドキャストのタイトルと説明文を生成
 
-### Command-line Options
+### コマンドラインオプション
 
 ```
-usage: pod-tenuki [-h] [--preset-uuid PRESET_UUID] [--preset-name PRESET_NAME]
+使用法: pod-tenuki [-h] [--preset-uuid PRESET_UUID] [--preset-name PRESET_NAME]
                   [--output-dir OUTPUT_DIR] [--language LANGUAGE]
                   [--skip-conversion] [--skip-transcription]
                   [--skip-summarization] [--verbose]
                   audio_file
 
-Process podcast audio files with Auphonic, transcribe, and summarize.
+Auphonic、文字起こし、要約でポッドキャスト音声ファイルを処理します。
 
-positional arguments:
-  audio_file            Path to the audio file to process (MP3, MP4, m4a, etc.)
+位置引数:
+  audio_file            処理する音声ファイルのパス（MP3、MP4、m4aなど）
 
-optional arguments:
-  -h, --help            show this help message and exit
+オプション引数:
+  -h, --help            ヘルプメッセージを表示して終了
   --preset-uuid PRESET_UUID
-                        UUID of the Auphonic preset to use (default: xbyREqwaKxENW2n5V2y3mg)
+                        使用するAuphonicプリセットのUUID（デフォルト: xbyREqwaKxENW2n5V2y3mg）
   --preset-name PRESET_NAME
-                        Name of the Auphonic preset to use (alternative to --preset-uuid)
+                        使用するAuphonicプリセットの名前（--preset-uuidの代わりに使用可能）
   --output-dir OUTPUT_DIR
-                        Directory to save output files (default: same directory as input file)
-  --language LANGUAGE   Language code for transcription (default: ja-JP)
-  --skip-conversion     Skip audio conversion with Auphonic
-  --skip-transcription  Skip audio transcription
-  --skip-summarization  Skip transcript summarization
-  --verbose, -v         Enable verbose logging
+                        出力ファイルを保存するディレクトリ（デフォルト: 入力ファイルと同じディレクトリ）
+  --language LANGUAGE   文字起こしの言語コード（デフォルト: ja-JP）
+  --skip-conversion     Auphonicでの音声変換をスキップ
+  --skip-transcription  音声の文字起こしをスキップ
+  --skip-summarization  文字起こしの要約をスキップ
+  --verbose, -v         詳細なログを有効化
 ```
 
-### Examples
+### 使用例
 
-#### Using the main CLI tool:
+#### メインCLIツールの使用：
 
-##### Convert audio only:
+##### 音声変換のみ：
 
 ```bash
 pod-tenuki --skip-transcription --skip-summarization audio_file.mp3
 ```
 
-##### Transcribe audio only (skip conversion):
+##### 文字起こしのみ（変換をスキップ）：
 
 ```bash
 pod-tenuki --skip-conversion --skip-summarization audio_file.mp3
 ```
 
-##### Summarize an existing transcript:
+##### 既存の文字起こしを要約：
 
 ```bash
 pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
-# Note: This assumes audio_file.txt exists
+# 注：audio_file.txtが存在することを前提としています
 ```
 
-#### Using individual CLI tools:
+#### 個別のCLIツールの使用：
 
-##### Convert audio only:
+##### 音声変換のみ：
 
 ```bash
 pod-tenuki-convert audio_file.mp3
 ```
 
-##### Transcribe audio only:
+##### 文字起こしのみ：
 
 ```bash
 pod-tenuki-transcribe audio_file.mp3
 ```
 
-##### Summarize an existing transcript:
+##### 既存の文字起こしを要約：
 
 ```bash
 pod-tenuki-summarize audio_file.txt
 ```
 
-#### Specify output directory:
+#### 出力ディレクトリの指定：
 
 ```bash
 pod-tenuki --output-dir /path/to/output audio_file.mp3
 ```
 
-#### Use a different Auphonic preset:
+#### 異なるAuphonicプリセットの使用：
 
 ```bash
 pod-tenuki --preset-uuid YOUR_PRESET_UUID audio_file.mp3
 ```
 
-#### Specify language for transcription:
+#### 文字起こしの言語を指定：
 
 ```bash
 pod-tenuki --language en-US audio_file.mp3
 ```
 
-## API Keys
+## APIキー
 
 ### Auphonic API
 
-1. Sign up for an Auphonic account at [auphonic.com](https://auphonic.com/)
-2. Get your API key from the [Account Settings page](https://auphonic.com/engine/account/)
-3. Add the API key to your `.env` file:
+1. [auphonic.com](https://auphonic.com/)でAuphonicアカウントを作成
+2. [アカウント設定ページ](https://auphonic.com/engine/account/)からAPIキーを取得
+3. APIキーを`.env`ファイルに追加：
 
 ```
 AUPHONIC_API_KEY=your_auphonic_api_key
@@ -155,9 +155,9 @@ AUPHONIC_API_KEY=your_auphonic_api_key
 
 ### Gemini API
 
-1. Create a Google AI Studio account at [ai.google.dev](https://ai.google.dev/)
-2. Get your API key from the [API keys section](https://ai.google.dev/api/register)
-3. Add the API key to your `.env` file:
+1. [ai.google.dev](https://ai.google.dev/)でGoogle AI Studioアカウントを作成
+2. [APIキーセクション](https://ai.google.dev/api/register)からAPIキーを取得
+3. APIキーを`.env`ファイルに追加：
 
 ```
 GEMINI_API_KEY=your_gemini_api_key
@@ -165,37 +165,37 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ### OpenAI API
 
-1. Sign up for an OpenAI account at [openai.com](https://openai.com/)
-2. Create an API key in the [API keys section](https://platform.openai.com/api-keys)
-3. Add the API key to your `.env` file:
+1. [openai.com](https://openai.com/)でOpenAIアカウントを作成
+2. [APIキーセクション](https://platform.openai.com/api-keys)でAPIキーを作成
+3. APIキーを`.env`ファイルに追加：
 
 ```
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-## Output Files
+## 出力ファイル
 
-For an input file `podcast.mp3`, the following files will be created:
+入力ファイル`podcast.mp3`に対して、以下のファイルが作成されます：
 
-- Converted audio file(s): Depends on the Auphonic preset settings
-- Transcript: `podcast.txt`
-- Summary: `podcast.summary.md`
+- 変換された音声ファイル：Auphonicプリセット設定に依存
+- 文字起こし：`podcast.txt`
+- 要約：`podcast.summary.md`
 
-## Cost Tracking
+## コスト追跡
 
-The application tracks and displays API usage costs at the end of processing:
+アプリケーションは処理終了時にAPI使用コストを追跡して表示します：
 
 ```
-API USAGE COSTS:
+API使用コスト:
 OpenAI API:
-  - gpt-3.5-turbo: 1234 input tokens, 567 output tokens, $0.0012
+  - gpt-3.5-turbo: 1234入力トークン, 567出力トークン, $0.0012
 Gemini API:
-  - Audio transcription: 30.50 minutes, $0.0763
-Total cost: $0.0775
+  - 音声文字起こし: 30.50分, $0.0763
+合計コスト: $0.0775
 ```
 
-This helps you monitor the costs associated with processing your podcast files.
+これにより、ポッドキャストファイルの処理に関連するコストを監視できます。
 
-## License
+## ライセンス
 
 MIT
