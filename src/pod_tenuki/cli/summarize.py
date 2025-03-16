@@ -98,7 +98,7 @@ def main() -> int:
         logger.info(f"Summarizing transcript: {transcript_file}")
         
         try:
-            title, description, summary_path = summarize_transcript(
+            title, description, topics, summary_path = summarize_transcript(
                 transcript_file=transcript_file,
                 output_file=output_file,
                 max_title_length=args.max_title_length,
@@ -114,6 +114,12 @@ def main() -> int:
             logger.info("=" * 50)
             logger.info(f"Podcast title: {title}")
             logger.info(f"Summary file: {summary_path}")
+            
+            # Print topics if available
+            if topics and len(topics) > 0:
+                logger.info("\nTopics:")
+                for topic in topics:
+                    logger.info(f"- {topic}")
             
             # Print API usage costs
             logger.info("\n" + "=" * 50)
