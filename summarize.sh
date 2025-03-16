@@ -43,11 +43,13 @@ fi
 # Activate virtual environment
 source "$VENV_DIR/bin/activate"
 
-# Install dependencies if needed
-if ! pip show pod-tenuki &> /dev/null; then
-    echo "Installing pod-tenuki and dependencies..."
-    pip install -e .
-fi
+# Always reinstall dependencies with pip3
+echo "Installing pod-tenuki and dependencies..."
+pip3 install -e .
+
+# Install additional audio processing dependencies
+echo "Installing audio processing dependencies..."
+pip3 install pydub ffmpeg-python
 
 # Run the pod-tenuki-summarize tool with the provided arguments
 echo "Running pod-tenuki-summarize with $TRANSCRIPT_FILE..."
