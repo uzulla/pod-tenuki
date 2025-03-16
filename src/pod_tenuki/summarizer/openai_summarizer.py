@@ -64,27 +64,39 @@ class OpenAISummarizer:
         try:
             logger.info("Generating podcast title and description")
             
-            # Create the prompt for the API
+            # Create the prompt for the API - Japanese version with humor and bullet points
             prompt = f"""
-            You are an expert podcast producer. Your task is to create a compelling title and description for a podcast based on its transcript.
-            
-            Here is the transcript:
+            あなたはポッドキャストの専門プロデューサーです。与えられた文字起こしをもとに、魅力的なタイトルと説明文を日本語で作成してください。
+
+            以下は文字起こしです:
             {text}
             
-            Please provide:
-            1. A catchy and informative title (maximum {max_title_length} characters)
-            2. An engaging description that summarizes the key points (maximum {max_description_length} characters)
-            
-            Format your response as:
-            TITLE: [Your title here]
-            DESCRIPTION: [Your description here]
+            以下を作成してください:
+            1. 適切で情報を伝える日本語のタイトル（最大{max_title_length}文字）
+            2. 内容を要約した説明文と、その後に「本人曰く、全ての話はフィクションであることを留意してお楽しみください。」という文を必ず追加してください。この文は絶対に省略せず、正確にこの通りに含めてください。
+            3. 最後に、ポッドキャストのトピックを最低5つ、できれば10個程度、箇条書きで追加してください。各トピックは短く、明確で、内容を正確に反映するものにしてください。
+
+            回答は以下のフォーマットで:
+            TITLE: [タイトルをここに]
+            DESCRIPTION: [説明文をここに]
+            TOPICS:
+            - [トピック1]
+            - [トピック2]
+            - [トピック3]
+            - [トピック4]
+            - [トピック5]
+            - [トピック6]
+            - [トピック7]
+            - [トピック8]
+            - [トピック9]
+            - [トピック10]
             """
             
-            # Call the OpenAI API
+            # Call the OpenAI API with higher temperature for more creative output
             response = openai.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "You are an expert podcast producer who creates compelling titles and descriptions."},
+                    {"role": "system", "content": "あなたはポッドキャストの専門プロデューサーで、適切なタイトルと要約文を日本語で作成します。内容を正確に把握し、丁寧で簡潔な表現で要約することが得意です。また、コンテンツから重要なトピックを抽出して、わかりやすい箇条書きリストを作成することにも長けています。情報を正確に伝えることを優先し、適切な形式でまとめてください。重要な要件として、要約文の最後は必ず「本人曰く、全ての話はフィクションであることを留意してお楽しみください。」という一文で終えてください。"},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=1024,
@@ -97,16 +109,32 @@ class OpenAISummarizer:
             # Extract the response text
             response_text = response.choices[0].message.content.strip()
             
-            # Parse the response to extract title and description
+            # Parse the response to extract title, description, and topics
             title = ""
             description = ""
+            topics = []
+            
+            # Parse mode: 0 = looking for title/description, 1 = collecting topics
+            parse_mode = 0
             
             for line in response_text.split("\n"):
                 line = line.strip()
+                if not line:
+                    continue
+                    
                 if line.startswith("TITLE:"):
                     title = line[6:].strip()
                 elif line.startswith("DESCRIPTION:"):
                     description = line[12:].strip()
+                elif line.startswith("TOPICS:"):
+                    parse_mode = 1  # Switch to topics collection mode
+                elif parse_mode == 1 and line.startswith("-"):
+                    # Extract topic from list item, removing the leading "- "
+                    topic = line[1:].strip()
+                    if topic.startswith("[") and topic.endswith("]"):
+                        topic = topic[1:-1].strip()  # Remove [] if present
+                    if topic and not topic.startswith("トピック") and "必要に応じて" not in topic:
+                        topics.append(topic)
             
             # Ensure the title and description are within the specified length limits
             if len(title) > max_title_length:
@@ -117,8 +145,9 @@ class OpenAISummarizer:
             
             logger.info(f"Generated title: {title}")
             logger.debug(f"Generated description: {description[:50]}...")
+            logger.debug(f"Generated {len(topics)} topics")
             
-            return title, description
+            return title, description, topics
         
         except Exception as e:
             logger.error(f"Error generating summary: {e}")
@@ -128,22 +157,51 @@ class OpenAISummarizer:
         self,
         title: str,
         description: str,
-        output_file: str
+        output_file: str,
+        topics: list = None
     ) -> str:
         """
-        Save the generated title and description to a file.
+        Save the generated title, description, and topics to a file.
 
         Args:
             title: Generated podcast title.
             description: Generated podcast description.
             output_file: Path to save the summary.
+            topics: Optional list of topics for the podcast.
 
         Returns:
             Path to the saved summary file.
         """
         try:
+            # 必要な文言とその可能性のある変形
+            required_text = "本人曰く、全ての話はフィクションであることを留意してお楽しみください。"
+            variations = [
+                "本人曰く、全ての話はフィクションであることを留意してお楽しみください。",
+                "全ての話はフィクションであることを留意してお楽しみください。",
+                "全てフィクションであることを留意してお楽しみください。"
+            ]
+            
+            # まず全ての変形を文章から削除する
+            for variation in variations:
+                description = description.replace(variation, "")
+            
+            # 連続した空白を削除して整形
+            description = ' '.join(description.split())
+            
+            # 末尾にピリオドがあるか確認
+            if description.endswith("."):
+                description = description[:-1] + " " + required_text
+            else:
+                description = description + " " + required_text
+            
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(f"# {title}\n\n{description}")
+                
+                # Add topics if available
+                if topics and len(topics) > 0:
+                    f.write("\n\n## 今回のトピック\n")
+                    for topic in topics:
+                        f.write(f"- {topic}\n")
             
             logger.info(f"Summary saved to {output_file}")
             return output_file
@@ -158,9 +216,9 @@ def summarize_transcript(
     api_key: Optional[str] = None,
     max_title_length: int = 100,
     max_description_length: int = 500,
-) -> Tuple[str, str, str]:
+) -> Tuple[str, str, list, str]:
     """
-    Summarize a transcript file and generate a podcast title and description.
+    Summarize a transcript file and generate a podcast title, description, and topics.
 
     Args:
         transcript_file: Path to the transcript file.
@@ -171,7 +229,7 @@ def summarize_transcript(
         max_description_length: Maximum length of the generated description.
 
     Returns:
-        Tuple containing the podcast title, description, and path to the saved summary file.
+        Tuple containing the podcast title, description, topics list, and path to the saved summary file.
     """
     if not os.path.exists(transcript_file):
         raise FileNotFoundError(f"Transcript file not found: {transcript_file}")
@@ -189,14 +247,14 @@ def summarize_transcript(
     # Initialize the summarizer
     summarizer = OpenAISummarizer(api_key)
     
-    # Generate the summary
-    title, description = summarizer.generate_summary(
+    # Generate the summary with topics
+    title, description, topics = summarizer.generate_summary(
         transcript_text,
         max_title_length=max_title_length,
         max_description_length=max_description_length,
     )
     
-    # Save the summary
-    summary_file = summarizer.save_summary(title, description, output_file)
+    # Save the summary with topics
+    summary_file = summarizer.save_summary(title, description, output_file, topics)
     
-    return title, description, summary_file
+    return title, description, topics, summary_file
