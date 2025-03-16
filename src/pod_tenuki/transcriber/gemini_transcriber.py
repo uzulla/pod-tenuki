@@ -7,6 +7,8 @@ It supports long audio files (up to 9.5 hours) and various audio formats.
 import os
 import logging
 import tempfile
+import subprocess
+import json
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 import wave
@@ -14,7 +16,6 @@ import contextlib
 
 import google.generativeai as genai
 from google.generativeai import types
-from pydub import AudioSegment
 
 from pod_tenuki.utils.config import GEMINI_API_KEY
 from pod_tenuki.utils.cost_tracker import cost_tracker
@@ -160,10 +161,24 @@ class GeminiTranscriber:
                     duration = frames / float(rate)
                     return duration
             
-            # Use pydub for other formats
+            # Use ffprobe for other formats
             else:
-                audio = AudioSegment.from_file(audio_file)
-                return len(audio) / 1000.0  # pydub duration is in milliseconds
+                try:
+                    # Use ffprobe to get duration
+                    cmd = [
+                        "ffprobe", 
+                        "-v", "error", 
+                        "-show_entries", "format=duration", 
+                        "-of", "json", 
+                        audio_file
+                    ]
+                    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                    data = json.loads(result.stdout)
+                    duration = float(data["format"]["duration"])
+                    return duration
+                except (subprocess.SubprocessError, json.JSONDecodeError, KeyError) as e:
+                    logger.warning(f"Error using ffprobe to get duration: {e}")
+                    raise
                 
         except Exception as e:
             logger.warning(f"Could not determine audio duration: {e}")
