@@ -302,11 +302,29 @@ def process_audio_file(
     
     logger.info(f"Creating production for {file_name} with preset {preset_uuid}")
     production = client.create_production(preset_uuid, title)
-    production_uuid = production.get("uuid")
+    
+    # Add detailed logging for debugging
+    logger.debug(f"Production creation response: {json.dumps(production, indent=2)}")
+    
+    # According to Auphonic API docs, the UUID is in the 'data' object, not at the top level
+    production_data = production.get("data", {})
+    production_uuid = production_data.get("uuid")
+    
+    if not production_uuid:
+        logger.error(f"Failed to get production UUID from response: {production}")
+        raise ValueError("Production UUID not found in API response")
+    
+    logger.info(f"Created production with UUID: {production_uuid}")
     
     # Upload the audio file
     logger.info(f"Uploading {file_name} to production {production_uuid}")
-    client.upload_audio(production_uuid, audio_file)
+    
+    try:
+        upload_response = client.upload_audio(production_uuid, audio_file)
+        logger.debug(f"Upload response: {json.dumps(upload_response, indent=2)}")
+    except Exception as e:
+        logger.error(f"Error uploading audio: {str(e)}")
+        raise
     
     # Start the production
     logger.info(f"Starting production {production_uuid}")
