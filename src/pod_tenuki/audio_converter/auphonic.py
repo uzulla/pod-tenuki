@@ -94,12 +94,27 @@ class AuphonicClient:
             Production data dictionary.
         """
         url = f"{self.api_url}/productions.json"
-        data = {
+        
+        # Create JSON payload according to Auphonic API documentation
+        json_data = {
             "preset": preset_uuid,
-            "title": title,
+            "metadata": {
+                "title": title
+            }
         }
         
-        response = self.session.post(url, data=data)
+        # Set Content-Type header to application/json
+        headers = {"Content-Type": "application/json"}
+        
+        logger.debug(f"Creating production with preset {preset_uuid} and title {title}")
+        logger.debug(f"Request payload: {json_data}")
+        
+        response = self.session.post(url, json=json_data, headers=headers)
+        
+        # Log response for debugging
+        if response.status_code != 200:
+            logger.error(f"Auphonic API error: {response.status_code} {response.text}")
+        
         response.raise_for_status()
         return response.json()
     
