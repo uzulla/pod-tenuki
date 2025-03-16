@@ -129,21 +129,45 @@ class AuphonicClient:
         Returns:
             Response data dictionary.
         """
+        if not production_uuid:
+            raise ValueError("Production UUID is required for upload")
+        
+        if not os.path.exists(audio_file):
+            raise FileNotFoundError(f"Audio file not found: {audio_file}")
+        
         url = f"{self.api_url}/production/{production_uuid}/upload.json"
+        logger.debug(f"Uploading audio to URL: {url}")
         
-        with open(audio_file, 'rb') as f:
-            file_size = os.path.getsize(audio_file)
-            with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Uploading {Path(audio_file).name}") as pbar:
-                files = {'input_file': f}
-                response = self.session.post(
-                    url, 
-                    files=files,
-                    data={'input_file': Path(audio_file).name}
-                )
-                pbar.update(file_size)
+        file_name = Path(audio_file).name
         
-        response.raise_for_status()
-        return response.json()
+        try:
+            with open(audio_file, 'rb') as f:
+                file_size = os.path.getsize(audio_file)
+                with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Uploading {file_name}") as pbar:
+                    files = {'input_file': (file_name, f)}
+                    data = {'input_file': file_name}
+                    
+                    logger.debug(f"Upload request data: {data}")
+                    
+                    response = self.session.post(
+                        url, 
+                        files=files,
+                        data=data
+                    )
+                    pbar.update(file_size)
+            
+            # Log response for debugging
+            if response.status_code != 200:
+                logger.error(f"Auphonic API upload error: {response.status_code} {response.text}")
+            
+            response.raise_for_status()
+            response_data = response.json()
+            logger.debug(f"Upload response: {json.dumps(response_data, indent=2)}")
+            return response_data
+            
+        except Exception as e:
+            logger.error(f"Error uploading audio file {file_name} to production {production_uuid}: {str(e)}")
+            raise
     
     def start_production(self, production_uuid: str) -> Dict[str, Any]:
         """
@@ -155,10 +179,27 @@ class AuphonicClient:
         Returns:
             Response data dictionary.
         """
+        if not production_uuid:
+            raise ValueError("Production UUID is required to start production")
+            
         url = f"{self.api_url}/production/{production_uuid}/start.json"
-        response = self.session.post(url)
-        response.raise_for_status()
-        return response.json()
+        logger.debug(f"Starting production with URL: {url}")
+        
+        try:
+            response = self.session.post(url)
+            
+            # Log response for debugging
+            if response.status_code != 200:
+                logger.error(f"Auphonic API start error: {response.status_code} {response.text}")
+            
+            response.raise_for_status()
+            response_data = response.json()
+            logger.debug(f"Start production response: {json.dumps(response_data, indent=2)}")
+            return response_data
+            
+        except Exception as e:
+            logger.error(f"Error starting production {production_uuid}: {str(e)}")
+            raise
     
     def get_production_status(self, production_uuid: str) -> Dict[str, Any]:
         """
@@ -170,10 +211,27 @@ class AuphonicClient:
         Returns:
             Production status dictionary.
         """
+        if not production_uuid:
+            raise ValueError("Production UUID is required to get status")
+            
         url = f"{self.api_url}/production/{production_uuid}.json"
-        response = self.session.get(url)
-        response.raise_for_status()
-        return response.json()
+        logger.debug(f"Getting production status from URL: {url}")
+        
+        try:
+            response = self.session.get(url)
+            
+            # Log response for debugging
+            if response.status_code != 200:
+                logger.error(f"Auphonic API status error: {response.status_code} {response.text}")
+            
+            response.raise_for_status()
+            response_data = response.json()
+            logger.debug(f"Production status response: {json.dumps(response_data, indent=2)}")
+            return response_data
+            
+        except Exception as e:
+            logger.error(f"Error getting status for production {production_uuid}: {str(e)}")
+            raise
     
     def wait_for_production(self, production_uuid: str, check_interval: int = 5) -> Dict[str, Any]:
         """
@@ -186,25 +244,42 @@ class AuphonicClient:
         Returns:
             Final production status dictionary.
         """
+        if not production_uuid:
+            raise ValueError("Production UUID is required to wait for production")
+            
         logger.info(f"Waiting for production {production_uuid} to complete...")
         
-        with tqdm(desc="Processing audio", unit="checks") as pbar:
-            while True:
-                status = self.get_production_status(production_uuid)
-                status_string = status.get("status_string", "")
-                
-                if status.get("status") == 3:  # Status 3 means completed
-                    logger.info(f"Production completed: {status_string}")
-                    return status
-                
-                if status.get("status") == 4:  # Status 4 means error
-                    error_message = status.get("error_message", "Unknown error")
-                    logger.error(f"Production failed: {error_message}")
-                    raise RuntimeError(f"Production failed: {error_message}")
-                
-                logger.debug(f"Current status: {status_string}")
-                pbar.update(1)
-                time.sleep(check_interval)
+        try:
+            with tqdm(desc="Processing audio", unit="checks") as pbar:
+                while True:
+                    try:
+                        status = self.get_production_status(production_uuid)
+                        status_string = status.get("status_string", "")
+                        status_code = status.get("status")
+                        
+                        if status_code == 3:  # Status 3 means completed
+                            logger.info(f"Production completed: {status_string}")
+                            return status
+                        
+                        if status_code == 4:  # Status 4 means error
+                            error_message = status.get("error_message", "Unknown error")
+                            logger.error(f"Production failed: {error_message}")
+                            raise RuntimeError(f"Production failed: {error_message}")
+                        
+                        logger.debug(f"Current status: {status_string} (code: {status_code})")
+                        pbar.update(1)
+                        time.sleep(check_interval)
+                        
+                    except Exception as e:
+                        if isinstance(e, RuntimeError) and "Production failed" in str(e):
+                            # Re-raise production failure errors
+                            raise
+                        
+                        logger.warning(f"Error checking production status: {str(e)}. Retrying in {check_interval} seconds...")
+                        time.sleep(check_interval)
+        except Exception as e:
+            logger.error(f"Error waiting for production {production_uuid}: {str(e)}")
+            raise
     
     def download_results(self, production_uuid: str, output_dir: str) -> List[str]:
         """
@@ -217,45 +292,74 @@ class AuphonicClient:
         Returns:
             List of paths to downloaded files.
         """
-        status = self.get_production_status(production_uuid)
-        output_files = status.get("output_files", [])
+        if not production_uuid:
+            raise ValueError("Production UUID is required to download results")
+            
+        if not output_dir:
+            raise ValueError("Output directory is required for downloading results")
+            
+        logger.info(f"Downloading results for production {production_uuid} to {output_dir}")
         
-        if not output_files:
-            logger.warning("No output files available for download")
-            return []
-        
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
-        
-        downloaded_files = []
-        
-        for file_info in output_files:
-            download_url = file_info.get("download_url")
-            filename = file_info.get("filename")
+        try:
+            # Get production status to find output files
+            status = self.get_production_status(production_uuid)
+            output_files = status.get("output_files", [])
             
-            if not download_url or not filename:
-                continue
+            if not output_files:
+                logger.warning(f"No output files available for download for production {production_uuid}")
+                return []
             
-            file_path = output_path / filename
+            logger.debug(f"Found {len(output_files)} output files to download")
             
-            logger.info(f"Downloading {filename}...")
+            # Create output directory if it doesn't exist
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
             
-            response = self.session.get(download_url, stream=True)
-            response.raise_for_status()
+            downloaded_files = []
             
-            total_size = int(response.headers.get('content-length', 0))
+            for file_info in output_files:
+                download_url = file_info.get("download_url")
+                filename = file_info.get("filename")
+                
+                if not download_url or not filename:
+                    logger.warning(f"Skipping file with missing download URL or filename: {file_info}")
+                    continue
+                
+                file_path = output_path / filename
+                
+                logger.info(f"Downloading {filename} from {download_url}...")
+                
+                try:
+                    response = self.session.get(download_url, stream=True)
+                    
+                    if response.status_code != 200:
+                        logger.error(f"Error downloading file {filename}: {response.status_code} {response.text}")
+                        continue
+                        
+                    response.raise_for_status()
+                    
+                    total_size = int(response.headers.get('content-length', 0))
+                    
+                    with open(file_path, 'wb') as f:
+                        with tqdm(total=total_size, unit='B', unit_scale=True, desc=filename) as pbar:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:
+                                    f.write(chunk)
+                                    pbar.update(len(chunk))
+                    
+                    downloaded_files.append(str(file_path))
+                    logger.info(f"Successfully downloaded {filename} to {file_path}")
+                    
+                except Exception as e:
+                    logger.error(f"Error downloading file {filename}: {str(e)}")
+                    # Continue with other files even if one fails
             
-            with open(file_path, 'wb') as f:
-                with tqdm(total=total_size, unit='B', unit_scale=True, desc=filename) as pbar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-                            pbar.update(len(chunk))
+            logger.info(f"Downloaded {len(downloaded_files)} files successfully")
+            return downloaded_files
             
-            downloaded_files.append(str(file_path))
-            logger.info(f"Downloaded {filename} to {file_path}")
-        
-        return downloaded_files
+        except Exception as e:
+            logger.error(f"Error downloading results for production {production_uuid}: {str(e)}")
+            raise
 
 def process_audio_file(
     audio_file: str,
