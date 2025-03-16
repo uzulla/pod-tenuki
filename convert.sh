@@ -49,10 +49,50 @@ fi
 # Activate virtual environment
 source "$VENV_DIR/bin/activate"
 
+# Check and install system dependencies
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    echo "Checking system dependencies for macOS..."
+    if ! command -v brew &> /dev/null; then
+        echo "Homebrew not found. Please install Homebrew first: https://brew.sh/"
+        echo "Then run this script again."
+        exit 1
+    fi
+    
+    # Check for ffmpeg
+    if ! command -v ffmpeg &> /dev/null; then
+        echo "Installing ffmpeg..."
+        brew install ffmpeg
+    fi
+    
+    # Install portaudio for pyaudio
+    if ! brew list portaudio &> /dev/null; then
+        echo "Installing portaudio..."
+        brew install portaudio
+    fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux
+    echo "Checking system dependencies for Linux..."
+    if command -v apt-get &> /dev/null; then
+        echo "Installing system dependencies..."
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg python3-dev python3-pyaudio
+    elif command -v yum &> /dev/null; then
+        echo "Installing system dependencies..."
+        sudo yum install -y ffmpeg python3-devel python3-pyaudio
+    else
+        echo "Warning: Unsupported Linux distribution. Please install ffmpeg and python3-pyaudio manually."
+    fi
+fi
+
 # Install dependencies if needed
 if ! pip show pod-tenuki &> /dev/null; then
     echo "Installing pod-tenuki and dependencies..."
     pip install -e .
+    
+    # Install additional Python dependencies
+    echo "Installing additional audio processing dependencies..."
+    pip install pyaudio
 fi
 
 # Run the pod-tenuki tool with the provided arguments
