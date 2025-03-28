@@ -170,17 +170,16 @@ class GoogleSpeechClient:
         
         # Configure the request
         audio = RecognitionAudio(uri=gcs_uri)
+        # 基本設定
         config = RecognitionConfig(
             encoding=encoding,
             sample_rate_hertz=sample_rate_hertz,
             language_code=language_code,
             enable_automatic_punctuation=True,
             enable_word_time_offsets=True,
-            # 長時間の音声に対する追加設定
-            enable_speaker_diarization=True,  # 話者の分離
-            diarization_speaker_count=2,      # 最小の話者数（調整可能）
+            # より安定した設定（diarizationは除外）
             use_enhanced=True,                # 強化音声モデルを使用
-            model="video",                    # ポッドキャスト/ビデオ向けモデル
+            model="latest_long",              # 長時間音声用の最新モデル
             max_alternatives=1,               # 必要に応じて複数の代替文字起こしを取得可能
         )
         
@@ -200,54 +199,21 @@ class GoogleSpeechClient:
             if result.alternatives:
                 alt = result.alternatives[0]
                 
-                # Check if this result has speaker_tag information
-                if hasattr(result, 'alternatives') and hasattr(alt, 'words') and len(alt.words) > 0 and hasattr(alt.words[0], 'speaker_tag'):
-                    # Group words by speaker
-                    current_speaker = None
-                    current_text = ""
-                    
+                # シンプルな処理 - 話者分離なし
+                # Add the transcript
+                transcript += alt.transcript + " "
+                
+                # Try to get word timing if available
+                if hasattr(alt, 'words'):
                     for word_info in alt.words:
-                        if current_speaker is None:
-                            current_speaker = word_info.speaker_tag
-                        
-                        if word_info.speaker_tag != current_speaker:
-                            # Speaker changed, add the completed utterance to the transcript
-                            transcript += f"\n\nSpeaker {current_speaker}: {current_text.strip()}"
-                            current_text = ""
-                            current_speaker = word_info.speaker_tag
-                        
-                        current_text += f" {word_info.word}"
-                        
-                        # Save word timing information
                         if hasattr(word_info, 'start_time') and hasattr(word_info, 'end_time'):
                             start_seconds = word_info.start_time.total_seconds()
                             end_seconds = word_info.end_time.total_seconds()
                             word_time_data.append({
                                 'word': word_info.word,
                                 'start_time': start_seconds,
-                                'end_time': end_seconds,
-                                'speaker': word_info.speaker_tag
+                                'end_time': end_seconds
                             })
-                    
-                    # Add the last utterance
-                    if current_text:
-                        transcript += f"\n\nSpeaker {current_speaker}: {current_text.strip()}"
-                
-                else:
-                    # No speaker information, just add the transcript
-                    transcript += alt.transcript + " "
-                    
-                    # Try to get word timing if available
-                    if hasattr(alt, 'words'):
-                        for word_info in alt.words:
-                            if hasattr(word_info, 'start_time') and hasattr(word_info, 'end_time'):
-                                start_seconds = word_info.start_time.total_seconds()
-                                end_seconds = word_info.end_time.total_seconds()
-                                word_time_data.append({
-                                    'word': word_info.word,
-                                    'start_time': start_seconds,
-                                    'end_time': end_seconds
-                                })
         
         # Get audio duration for cost tracking
         try:
