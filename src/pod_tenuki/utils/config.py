@@ -11,9 +11,6 @@ load_dotenv(dotenv_path=env_path)
 AUPHONIC_API_KEY = os.getenv('AUPHONIC_API_KEY')
 AUPHONIC_API_URL = 'https://auphonic.com/api'
 
-# Gemini API configuration
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-
 # Google Cloud Speech-to-Text configuration
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 GOOGLE_CLOUD_PROJECT = os.getenv('GOOGLE_CLOUD_PROJECT')
@@ -28,10 +25,6 @@ def validate_config():
     
     if not AUPHONIC_API_KEY:
         missing_vars.append('AUPHONIC_API_KEY')
-    
-    # Gemini APIはもう使わないのでチェックから除外
-    # if not GEMINI_API_KEY:
-    #     missing_vars.append('GEMINI_API_KEY')
     
     if not OPENAI_API_KEY:
         missing_vars.append('OPENAI_API_KEY')

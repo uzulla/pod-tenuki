@@ -6,7 +6,7 @@ Pod-Tenukiは、ポッドキャストの音声ファイルを処理するため�
 2. **WAVファイル連結**: 複数のWAVファイルを1つのMP3ファイルに連結
 3. **文字起こし**: Google Cloud Speech-to-Text APIを使用して音声ファイルをテキストに変換（最大8時間の長時間音声に対応）
 4. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
-5. **コスト追跡**: Google Cloud Speech-to-TextとOpenAI APIの使用コストを追跡して表示
+5. **コスト追跡**: Google Cloud Speech-to-TextとOpenAI APIの使用コストを追跡して表示（使用した分数と料金）
 
 ## インストール
 
@@ -125,6 +125,23 @@ pod-tenuki --skip-transcription --skip-summarization audio_file.mp3
 pod-tenuki --skip-conversion --skip-summarization audio_file.mp3
 ```
 
+##### 複数のWAVファイルを連結して処理：
+
+```bash
+pod-tenuki recording1.wav recording2.wav recording3.wav
+```
+
+これにより以下の処理が行われます：
+1. WAVファイルが自動的に一時的なMP3ファイルに連結
+2. 連結されたファイルをAuphonicで処理
+3. 文字起こしと要約の生成
+
+##### 複数のWAVファイルの連結と文字起こしのみ：
+
+```bash
+pod-tenuki --skip-conversion --skip-summarization recording1.wav recording2.wav recording3.wav
+```
+
 ##### 既存の文字起こしを要約：
 
 ```bash
@@ -229,7 +246,15 @@ AUPHONIC_API_KEY=your_auphonic_api_key
      - 「作成」をクリック
    - これにより、アップロードから1日後にすべてのファイルが自動的に削除されます
 
-4. APIキーを`.env`ファイルに追加：
+4. バケット使用状況の確認方法：
+   - 処理中にエラーが発生した場合、以下のコマンドでGCSバケットを確認できます（gcloudコマンドラインツールが必要）：
+   ```bash
+   gcloud storage ls gs://your-bucket-name
+   ```
+   - または Google Cloud Console の「Cloud Storage」→「ブラウザ」→バケット名をクリックして確認できます
+   - バケットに残っているファイルは、ライフサイクルポリシーに従って自動削除されるか、手動で削除できます
+
+5. APIキーを`.env`ファイルに追加：
 
 ```
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/downloaded-key-file.json
