@@ -208,9 +208,11 @@ AUPHONIC_API_KEY=your_auphonic_api_key
      - Storage 管理者（または Storage オブジェクト作成者＋閲覧者）
    - サービスアカウントの「アクション」メニューから「鍵を管理」→「新しい鍵を作成」→「JSON」を選択し、キーファイルをダウンロード
 
-3. Cloud Storage バケットを作成：
+3. Cloud Storage バケットを作成（必須）：
    - 「Cloud Storage」→「バケット」から新しいバケットを作成
    - グローバルに一意な名前を設定（例：`your-project-speech-to-text`）
+   - このバケットは長時間音声の一時保存に使用されます
+   - バケット名は必ず `.env` ファイルの `GOOGLE_STORAGE_BUCKET` に設定してください
 
 4. APIキーを`.env`ファイルに追加：
 

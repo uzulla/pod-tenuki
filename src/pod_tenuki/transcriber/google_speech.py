@@ -56,24 +56,25 @@ class GoogleSpeechClient:
         self.speech_client = speech.SpeechClient()
         self.storage_client = storage.Client()
     
-    def create_bucket_if_not_exists(self, bucket_name: str) -> storage.Bucket:
+    def get_bucket(self, bucket_name: str) -> storage.Bucket:
         """
-        Create a Google Cloud Storage bucket if it doesn't exist.
+        Get a Google Cloud Storage bucket.
 
         Args:
-            bucket_name: Name of the bucket to create.
+            bucket_name: Name of the bucket to get.
 
         Returns:
             Bucket object.
+            
+        Raises:
+            RuntimeError: If the bucket does not exist.
         """
         try:
             bucket = self.storage_client.get_bucket(bucket_name)
-            logger.info(f"Bucket {bucket_name} already exists")
-        except Exception:
-            bucket = self.storage_client.create_bucket(bucket_name)
-            logger.info(f"Bucket {bucket_name} created")
-        
-        return bucket
+            logger.info(f"Using bucket {bucket_name}")
+            return bucket
+        except Exception as e:
+            raise RuntimeError(f"バケット {bucket_name} が見つかりません。Google Cloud Console で事前に作成してください: {e}")
     
     def upload_to_gcs(self, bucket_name: str, source_file_path: str, destination_blob_name: Optional[str] = None) -> str:
         """
@@ -91,7 +92,7 @@ class GoogleSpeechClient:
         if not destination_blob_name:
             destination_blob_name = Path(source_file_path).name
         
-        bucket = self.create_bucket_if_not_exists(bucket_name)
+        bucket = self.get_bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         
         logger.info(f"Uploading {source_file_path} to gs://{bucket_name}/{destination_blob_name}")
@@ -310,7 +311,11 @@ class GoogleSpeechClient:
         
         if is_long_audio:
             if not bucket_name:
-                bucket_name = f"{self.project_id}-speech-to-text"
+                # GOOGLE_STORAGE_BUCKET 環境変数からバケット名を取得
+                from pod_tenuki.utils.config import GOOGLE_STORAGE_BUCKET
+                if not GOOGLE_STORAGE_BUCKET:
+                    raise ValueError("長時間の音声には Google Storage バケットが必要です。.env ファイルで GOOGLE_STORAGE_BUCKET を設定してください。")
+                bucket_name = GOOGLE_STORAGE_BUCKET
             
             return self.transcribe_long_audio(
                 audio_file=audio_file,
