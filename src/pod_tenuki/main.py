@@ -257,10 +257,10 @@ def main() -> int:
                 logger.error(f"Audio file not found: {audio_file}")
                 return 1
         
-        # Create output directory if specified
-        output_dir = args.output_dir
-        if output_dir:
-            os.makedirs(output_dir, exist_ok=True)
+        # Set output directory (default to ./output if not specified)
+        output_dir = args.output_dir or os.path.join(os.getcwd(), "output")
+        os.makedirs(output_dir, exist_ok=True)
+        logger.info(f"Using output directory: {output_dir}")
         
         # Check if we need to concatenate multiple WAV files
         input_audio_file = audio_files[0]

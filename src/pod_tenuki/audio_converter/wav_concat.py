@@ -55,14 +55,18 @@ def concatenate_wav_files(
         output_path = Path(output_dir) / f"{base_name}.mp3"
         os.makedirs(output_dir, exist_ok=True)
     elif output_name:
-        # Use system temp directory with provided name
-        temp_dir = tempfile.gettempdir()
-        output_path = Path(temp_dir) / output_name
+        # Use default output directory with provided name
+        default_output_dir = os.path.join(os.getcwd(), "output")
+        os.makedirs(default_output_dir, exist_ok=True)
+        output_path = Path(default_output_dir) / output_name
     else:
-        # Create a temporary file with .mp3 extension
-        temp_file = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-        temp_file.close()
-        output_path = Path(temp_file.name)
+        # Use default output directory with generated name
+        default_output_dir = os.path.join(os.getcwd(), "output")
+        os.makedirs(default_output_dir, exist_ok=True)
+        base_name = Path(wav_files[0]).stem
+        if len(wav_files) > 1:
+            base_name += "_concatenated"
+        output_path = Path(default_output_dir) / f"{base_name}.mp3"
     
     logger.info(f"Concatenating {len(wav_files)} WAV files into {output_path}")
     

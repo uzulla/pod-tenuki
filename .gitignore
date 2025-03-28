@@ -51,6 +51,10 @@ tmp/
 temp/
 *.tmp
 
+# Output directory (keep directory but ignore contents)
+output/*
+!output/.gitkeep
+
 # Audio and transcription files
 *.mp3
 *.mp4

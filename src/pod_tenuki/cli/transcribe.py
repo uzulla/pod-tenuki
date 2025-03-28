@@ -89,10 +89,10 @@ def main() -> int:
         if len(audio_files) > 1 and all(Path(f).suffix.lower() == '.wav' for f in audio_files):
             logger.info(f"Detected multiple WAV files, concatenating {len(audio_files)} files...")
             try:
-                # Create temporary directory for the output if needed
-                output_dir = os.path.dirname(args.output_file) if args.output_file else None
-                if output_dir and not os.path.exists(output_dir):
-                    os.makedirs(output_dir, exist_ok=True)
+                # Use specified output directory or default to ./output
+                output_dir = os.path.dirname(args.output_file) if args.output_file else os.path.join(os.getcwd(), "output")
+                os.makedirs(output_dir, exist_ok=True)
+                logger.info(f"Using output directory: {output_dir}")
                 
                 input_audio_file = concatenate_wav_files(
                     wav_files=audio_files,
