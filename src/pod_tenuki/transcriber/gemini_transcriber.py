@@ -110,8 +110,30 @@ class GeminiTranscriber:
             return output_file
         
         except Exception as e:
-            logger.error(f"Error transcribing audio: {e}")
-            raise
+            error_message = f"Error transcribing audio: {e}"
+            
+            # 詳細なエラー情報を出力（特にGoogle APIからのエラーの場合）
+            if hasattr(e, 'status_code'):
+                error_message += f"\nStatus code: {e.status_code}"
+            
+            if hasattr(e, 'details'):
+                error_message += f"\nDetails: {e.details}"
+                
+            if hasattr(e, 'message'):
+                error_message += f"\nMessage: {e.message}"
+                
+            # APIレスポンスの生データがあれば出力
+            if hasattr(e, 'response') and hasattr(e.response, 'text'):
+                error_message += f"\nResponse text: {e.response.text[:1000]}"  # 長すぎる場合は切り詰める
+                
+            # HTTPヘッダーも取得（認証や制限に関する問題の特定に役立つ）
+            if hasattr(e, 'response') and hasattr(e.response, 'headers'):
+                error_message += f"\nResponse headers: {dict(e.response.headers)}"
+
+            logger.error(error_message)
+            
+            # 詳細なエラー情報を含めて例外を再発生
+            raise Exception(error_message) from e
     
     def _get_mime_type(self, file_path: str) -> str:
         """
