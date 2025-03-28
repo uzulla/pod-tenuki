@@ -224,8 +224,18 @@ class GoogleSpeechClient:
             cost_tracker.track_google_speech(audio_duration_minutes)
             
             logger.info(f"Audio duration: {audio_duration_minutes:.2f} minutes")
+            logger.info(f"Google Speech cost estimate: ${audio_duration_minutes * cost_tracker.GOOGLE_SPEECH_COST_PER_MINUTE:.4f}")
         except Exception as e:
             logger.warning(f"Could not track cost: {e}")
+            # エラーが発生しても概算コストを計算
+            try:
+                # ファイルサイズから大まかな時間を推定
+                file_size_mb = os.path.getsize(audio_file) / (1024 * 1024)
+                estimated_minutes = file_size_mb / 1  # 1分あたり約1MBと仮定
+                cost_tracker.track_google_speech(estimated_minutes)
+                logger.warning(f"Using estimated duration based on file size: {estimated_minutes:.2f} minutes")
+            except Exception:
+                pass
         
         return transcript.strip()
     
