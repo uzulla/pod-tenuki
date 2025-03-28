@@ -4,9 +4,9 @@ Pod-Tenukiは、ポッドキャストの音声ファイルを処理するため�
 
 1. **音声変換**: Auphonic APIを使用して音声ファイル（MP3、MP4、m4aなど）を指定のプリセットで変換
 2. **WAVファイル連結**: 複数のWAVファイルを1つのMP3ファイルに連結
-3. **文字起こし**: Google Gemini APIを使用して音声ファイルをテキストに変換
+3. **文字起こし**: Google Cloud Speech-to-Text APIを使用して音声ファイルをテキストに変換（最大8時間の長時間音声に対応）
 4. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
-5. **コスト追跡**: GeminiとOpenAI APIの使用コストを追跡して表示
+5. **コスト追跡**: Google Cloud Speech-to-TextとOpenAI APIの使用コストを追跡して表示
 
 ## インストール
 
@@ -14,7 +14,7 @@ Pod-Tenukiは、ポッドキャストの音声ファイルを処理するため�
 
 - Python 3.8以上
 - Auphonic APIキー
-- Gemini APIキー
+- Google Cloud Platform アカウントと認証情報
 - OpenAI APIキー
 - ffmpeg（音声処理に必要）
 
@@ -192,14 +192,32 @@ pod-tenuki --language en-US audio_file.mp3
 AUPHONIC_API_KEY=your_auphonic_api_key
 ```
 
-### Gemini API
+### Google Cloud Speech-to-Text API
 
-1. [ai.google.dev](https://ai.google.dev/)でGoogle AI Studioアカウントを作成
-2. [APIキーセクション](https://ai.google.dev/api/register)からAPIキーを取得
-3. APIキーを`.env`ファイルに追加：
+1. Google Cloud Platform (GCP) プロジェクトを設定する：
+   - [Google Cloud コンソール](https://console.cloud.google.com/)にアクセスし、Googleアカウントでログイン
+   - 新しいプロジェクトを作成（または既存のプロジェクトを選択）
+   - 「API とサービス」→「ライブラリ」から以下のAPIを有効化：
+     - Cloud Speech-to-Text API
+     - Cloud Storage API（長時間音声の処理に必要）
+
+2. サービスアカウントと認証情報を作成：
+   - 「IAM と管理」→「サービスアカウント」で新しいサービスアカウントを作成
+   - 以下の権限を付与：
+     - Speech to Text ユーザー
+     - Storage 管理者（または Storage オブジェクト作成者＋閲覧者）
+   - サービスアカウントの「アクション」メニューから「鍵を管理」→「新しい鍵を作成」→「JSON」を選択し、キーファイルをダウンロード
+
+3. Cloud Storage バケットを作成：
+   - 「Cloud Storage」→「バケット」から新しいバケットを作成
+   - グローバルに一意な名前を設定（例：`your-project-speech-to-text`）
+
+4. APIキーを`.env`ファイルに追加：
 
 ```
-GEMINI_API_KEY=your_gemini_api_key
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/downloaded-key-file.json
+GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+GOOGLE_STORAGE_BUCKET=your-storage-bucket-name
 ```
 
 ### OpenAI API
