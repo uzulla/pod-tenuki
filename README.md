@@ -203,10 +203,16 @@ AUPHONIC_API_KEY=your_auphonic_api_key
 
 2. サービスアカウントと認証情報を作成：
    - 「IAM と管理」→「サービスアカウント」で新しいサービスアカウントを作成
-   - 以下の権限を付与：
+   - 以下の権限を付与（必須）：
      - Speech to Text ユーザー
-     - Storage 管理者（または Storage オブジェクト作成者＋閲覧者）
+     - Storage オブジェクト管理者（Storage Object Admin）
+       （または次の個別権限すべて: Storage オブジェクト作成者・閲覧者・削除者）
    - サービスアカウントの「アクション」メニューから「鍵を管理」→「新しい鍵を作成」→「JSON」を選択し、キーファイルをダウンロード
+
+   重要: サービスアカウントは最低でも以下の権限が必要です:
+   - storage.objects.create（ファイルのアップロード）
+   - storage.objects.get（ファイルのアクセス）
+   - storage.objects.delete（ファイルの削除）
 
 3. Cloud Storage バケットを作成（必須）：
    - 「Cloud Storage」→「バケット」から新しいバケットを作成
