@@ -72,7 +72,7 @@ pod-tenuki /path/to/your/audio_file.mp3
 
 これにより以下が実行されます：
 1. デフォルトのAuphonicプリセットを使用して音声ファイルを変換
-2. Google Gemini APIを使用して変換された音声を文字起こし
+2. Google Cloud Speech-to-Text APIを使用して変換された音声を文字起こし
 3. 文字起こしからポッドキャストのタイトルと説明文を生成
 
 複数のWAVファイルの処理：
@@ -299,9 +299,9 @@ OPENAI_API_KEY=your_openai_api_key
 API使用コスト:
 OpenAI API:
   - gpt-3.5-turbo: 1234入力トークン, 567出力トークン, $0.0012
-Gemini API:
-  - 音声文字起こし: 30.50分, $0.0763
-合計コスト: $0.0775
+Google Cloud Speech-to-Text API:
+  - 音声文字起こし: 30.50分, $0.7320
+合計コスト: $0.7332
 ```
 
 これにより、ポッドキャストファイルの処理に関連するコストを監視できます。
