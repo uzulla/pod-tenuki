@@ -14,7 +14,8 @@ from google.cloud import storage
 from google.cloud.speech import RecognitionConfig, RecognitionAudio
 from google.api_core.exceptions import GoogleAPIError
 
-from pod_tenuki.utils.config import GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_CLOUD_PROJECT
+from pod_tenuki.utils.config import GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_CLOUD_PROJECT, GOOGLE_STORAGE_BUCKET
+from pod_tenuki.utils.cost_tracker import cost_tracker
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -147,7 +148,7 @@ class GoogleSpeechClient:
         language_code: str = "en-US",
         sample_rate_hertz: int = 16000,
         encoding: speech.RecognitionConfig.AudioEncoding = speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        timeout: int = 600,
+        timeout: int = 1800,  # デフォルトの待機時間を30分に延長（長い音声対応）
     ) -> str:
         """
         Transcribe a long audio file (more than 60 seconds) using asynchronous recognition.
@@ -174,6 +175,12 @@ class GoogleSpeechClient:
             language_code=language_code,
             enable_automatic_punctuation=True,
             enable_word_time_offsets=True,
+            # 長時間の音声に対する追加設定
+            enable_speaker_diarization=True,  # 話者の分離
+            diarization_speaker_count=2,      # 最小の話者数（調整可能）
+            use_enhanced=True,                # 強化音声モデルを使用
+            model="video",                    # ポッドキャスト/ビデオ向けモデル
+            max_alternatives=1,               # 必要に応じて複数の代替文字起こしを取得可能
         )
         
         # Start the long-running operation
@@ -184,10 +191,74 @@ class GoogleSpeechClient:
         logger.info("Waiting for transcription to complete...")
         response = operation.result(timeout=timeout)
         
-        # Combine the transcripts
+        # Combine the transcripts with speaker tags (if available)
         transcript = ""
-        for result in response.results:
-            transcript += result.alternatives[0].transcript + " "
+        word_time_data = []
+        
+        for i, result in enumerate(response.results):
+            if result.alternatives:
+                alt = result.alternatives[0]
+                
+                # Check if this result has speaker_tag information
+                if hasattr(result, 'alternatives') and hasattr(alt, 'words') and len(alt.words) > 0 and hasattr(alt.words[0], 'speaker_tag'):
+                    # Group words by speaker
+                    current_speaker = None
+                    current_text = ""
+                    
+                    for word_info in alt.words:
+                        if current_speaker is None:
+                            current_speaker = word_info.speaker_tag
+                        
+                        if word_info.speaker_tag != current_speaker:
+                            # Speaker changed, add the completed utterance to the transcript
+                            transcript += f"\n\nSpeaker {current_speaker}: {current_text.strip()}"
+                            current_text = ""
+                            current_speaker = word_info.speaker_tag
+                        
+                        current_text += f" {word_info.word}"
+                        
+                        # Save word timing information
+                        if hasattr(word_info, 'start_time') and hasattr(word_info, 'end_time'):
+                            start_seconds = word_info.start_time.total_seconds()
+                            end_seconds = word_info.end_time.total_seconds()
+                            word_time_data.append({
+                                'word': word_info.word,
+                                'start_time': start_seconds,
+                                'end_time': end_seconds,
+                                'speaker': word_info.speaker_tag
+                            })
+                    
+                    # Add the last utterance
+                    if current_text:
+                        transcript += f"\n\nSpeaker {current_speaker}: {current_text.strip()}"
+                
+                else:
+                    # No speaker information, just add the transcript
+                    transcript += alt.transcript + " "
+                    
+                    # Try to get word timing if available
+                    if hasattr(alt, 'words'):
+                        for word_info in alt.words:
+                            if hasattr(word_info, 'start_time') and hasattr(word_info, 'end_time'):
+                                start_seconds = word_info.start_time.total_seconds()
+                                end_seconds = word_info.end_time.total_seconds()
+                                word_time_data.append({
+                                    'word': word_info.word,
+                                    'start_time': start_seconds,
+                                    'end_time': end_seconds
+                                })
+        
+        # Get audio duration for cost tracking
+        try:
+            audio_duration_seconds = self._get_audio_duration(audio_file)
+            audio_duration_minutes = audio_duration_seconds / 60
+            
+            # Track the cost (standard model)
+            cost_tracker.track_google_speech(audio_duration_minutes)
+            
+            logger.info(f"Audio duration: {audio_duration_minutes:.2f} minutes")
+        except Exception as e:
+            logger.warning(f"Could not track cost: {e}")
         
         return transcript.strip()
     
@@ -218,9 +289,11 @@ class GoogleSpeechClient:
         if not os.path.exists(audio_file):
             raise FileNotFoundError(f"Audio file not found: {audio_file}")
         
-        # Determine file size
+        # Determine file size - すべてのオーディオを非同期（long_audio）として処理
         file_size = os.path.getsize(audio_file)
-        is_long_audio = file_size > 10 * 1024 * 1024  # Files larger than 10MB are considered long
+        logger.info(f"Audio file size: {file_size / (1024 * 1024):.2f} MB")
+        # ポッドキャスト用途では常に非同期APIを使用するため、常にTrueに設定
+        is_long_audio = True  # すべての音声ファイルを長時間音声として処理
         
         # Determine encoding if not provided
         if not encoding:
@@ -280,10 +353,10 @@ def transcribe_audio_file(
     audio_file: str,
     output_file: Optional[str] = None,
     bucket_name: Optional[str] = None,
-    language_code: str = "en-US",
+    language_code: str = "ja-JP",  # デフォルトを日本語に変更
     credentials_path: Optional[str] = None,
     project_id: Optional[str] = None,
-    timeout: int = 600,
+    timeout: int = 1800,  # デフォルトタイムアウトを30分に延長
 ) -> str:
     """
     Transcribe an audio file using Google Cloud Speech-to-Text.
