@@ -17,7 +17,7 @@ from typing import Optional, List, Dict, Any, Tuple
 from pod_tenuki.utils.logger import setup_logger
 from pod_tenuki.utils.config import validate_config
 from pod_tenuki.utils.cost_tracker import cost_tracker
-from pod_tenuki.audio_converter import process_audio_file
+from pod_tenuki.audio_converter import process_audio_file, concatenate_wav_files
 from pod_tenuki.transcriber import transcribe_audio_file
 from pod_tenuki.summarizer import summarize_transcript
 
@@ -31,8 +31,9 @@ def parse_arguments() -> argparse.Namespace:
     )
     
     parser.add_argument(
-        "audio_file",
-        help="Path to the audio file to process (MP3, MP4, m4a, etc.)"
+        "audio_files",
+        nargs='+',
+        help="Path(s) to the audio file(s) to process (MP3, MP4, m4a, WAV, etc.). Multiple WAV files will be concatenated."
     )
     
     parser.add_argument(
@@ -49,6 +50,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         help="Directory to save output files (default: same directory as input file)"
+    )
+    
+    parser.add_argument(
+        "--output-name",
+        help="Name for the output file when concatenating multiple files"
     )
     
     parser.add_argument(
@@ -244,20 +250,38 @@ def main() -> int:
             logger.error(f"Configuration error: {e}")
             return 1
         
-        # Validate input file
-        audio_file = args.audio_file
-        if not os.path.exists(audio_file):
-            logger.error(f"Audio file not found: {audio_file}")
-            return 1
+        # Validate input files
+        audio_files = args.audio_files
+        for audio_file in audio_files:
+            if not os.path.exists(audio_file):
+                logger.error(f"Audio file not found: {audio_file}")
+                return 1
         
         # Create output directory if specified
         output_dir = args.output_dir
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
         
+        # Check if we need to concatenate multiple WAV files
+        input_audio_file = audio_files[0]
+        if len(audio_files) > 1 and all(Path(f).suffix.lower() == '.wav' for f in audio_files):
+            logger.info(f"Detected multiple WAV files, concatenating {len(audio_files)} files...")
+            try:
+                input_audio_file = concatenate_wav_files(
+                    wav_files=audio_files,
+                    output_dir=output_dir,
+                    output_name=args.output_name
+                )
+                logger.info(f"Successfully concatenated files to: {input_audio_file}")
+            except Exception as e:
+                logger.error(f"Failed to concatenate WAV files: {e}")
+                return 1
+        elif len(audio_files) > 1:
+            logger.warning("Multiple input files provided but not all are WAV files. Using only the first file.")
+        
         # Process audio with Auphonic
         processed_files = process_audio(
-            audio_file=audio_file,
+            audio_file=input_audio_file,
             preset_uuid=args.preset_uuid,
             preset_name=args.preset_name,
             output_dir=output_dir,
@@ -265,7 +289,7 @@ def main() -> int:
         )
         
         # Use the first processed file for transcription
-        audio_for_transcription = processed_files[0] if processed_files else audio_file
+        audio_for_transcription = processed_files[0] if processed_files else input_audio_file
         
         # Transcribe audio
         transcript_file = transcribe_audio(

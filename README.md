@@ -3,9 +3,10 @@
 Pod-Tenukiは、ポッドキャストの音声ファイルを処理するためのコマンドラインツールです。以下の機能を提供します：
 
 1. **音声変換**: Auphonic APIを使用して音声ファイル（MP3、MP4、m4aなど）を指定のプリセットで変換
-2. **文字起こし**: Google Gemini APIを使用して音声ファイルをテキストに変換
-3. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
-4. **コスト追跡**: GeminiとOpenAI APIの使用コストを追跡して表示
+2. **WAVファイル連結**: 複数のWAVファイルを1つのMP3ファイルに連結
+3. **文字起こし**: Google Gemini APIを使用して音声ファイルをテキストに変換
+4. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
+5. **コスト追跡**: GeminiとOpenAI APIの使用コストを追跡して表示
 
 ## インストール
 
@@ -68,19 +69,28 @@ pod-tenuki /path/to/your/audio_file.mp3
 2. Google Gemini APIを使用して変換された音声を文字起こし
 3. 文字起こしからポッドキャストのタイトルと説明文を生成
 
+複数のWAVファイルの処理：
+```bash
+pod-tenuki /path/to/recording1.wav /path/to/recording2.wav /path/to/recording3.wav
+```
+
+この場合は以下が実行されます：
+1. 複数のWAVファイルが自動的に1つのMP3ファイルに連結
+2. 連結されたファイルに対して通常の処理が実行される
+
 ### コマンドラインオプション
 
 ```
 使用法: pod-tenuki [-h] [--preset-uuid PRESET_UUID] [--preset-name PRESET_NAME]
-                  [--output-dir OUTPUT_DIR] [--language LANGUAGE]
-                  [--skip-conversion] [--skip-transcription]
+                  [--output-dir OUTPUT_DIR] [--output-name OUTPUT_NAME]
+                  [--language LANGUAGE] [--skip-conversion] [--skip-transcription]
                   [--skip-summarization] [--verbose]
-                  audio_file
+                  audio_files [audio_files ...]
 
 Auphonic、文字起こし、要約でポッドキャスト音声ファイルを処理します。
 
 位置引数:
-  audio_file            処理する音声ファイルのパス（MP3、MP4、m4aなど）
+  audio_files           処理する音声ファイルのパス（MP3、MP4、m4a、WAV など）。複数のWAVファイルは連結されます。
 
 オプション引数:
   -h, --help            ヘルプメッセージを表示して終了
@@ -90,6 +100,8 @@ Auphonic、文字起こし、要約でポッドキャスト音声ファイルを
                         使用するAuphonicプリセットの名前（--preset-uuidの代わりに使用可能）
   --output-dir OUTPUT_DIR
                         出力ファイルを保存するディレクトリ（デフォルト: 入力ファイルと同じディレクトリ）
+  --output-name OUTPUT_NAME
+                        複数のファイルを連結する際の出力ファイル名
   --language LANGUAGE   文字起こしの言語コード（デフォルト: ja-JP）
   --skip-conversion     Auphonicでの音声変換をスキップ
   --skip-transcription  音声の文字起こしをスキップ
@@ -128,10 +140,20 @@ pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
 pod-tenuki-convert audio_file.mp3
 ```
 
+複数のWAVファイルを連結して変換：
+```bash
+pod-tenuki-convert recording1.wav recording2.wav recording3.wav
+```
+
 ##### 文字起こしのみ：
 
 ```bash
 pod-tenuki-transcribe audio_file.mp3
+```
+
+複数のWAVファイルを連結して文字起こし：
+```bash
+pod-tenuki-transcribe recording1.wav recording2.wav recording3.wav
 ```
 
 ##### 既存の文字起こしを要約：
@@ -197,6 +219,11 @@ OPENAI_API_KEY=your_openai_api_key
 - 変換された音声ファイル：Auphonicプリセット設定に依存
 - 文字起こし：`podcast.txt`
 - 要約：`podcast.summary.md`
+
+複数のWAVファイルを入力した場合（例: `recording1.wav`, `recording2.wav`）：
+
+- 連結されたMP3ファイル：一時ディレクトリまたは指定された出力ディレクトリに作成
+- 連結ファイルから生成される出力ファイル：上記と同様
 
 ## コスト追跡
 
