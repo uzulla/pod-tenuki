@@ -15,7 +15,7 @@ class CostTracker:
     
     # Approximate cost per 1000 tokens for OpenAI models (in USD)
     OPENAI_COSTS = {
-        "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
+        "gpt-4o": {"input": 0.01, "output": 0.03},
         "gpt-4": {"input": 0.03, "output": 0.06},
         "gpt-4-turbo": {"input": 0.01, "output": 0.03},
     }
@@ -41,7 +41,7 @@ class CostTracker:
         self.google_speech_cost = 0.0
         self.total_cost = 0.0
     
-    def track_openai_usage(self, response: Any, model: str = "gpt-3.5-turbo"):
+    def track_openai_usage(self, response: Any, model: str = "gpt-4o"):
         """
         Track OpenAI API usage from a response.
         
@@ -50,8 +50,8 @@ class CostTracker:
             model: OpenAI model name
         """
         if model not in self.OPENAI_COSTS:
-            logger.warning(f"Unknown OpenAI model: {model}, using gpt-3.5-turbo pricing")
-            model = "gpt-3.5-turbo"
+            logger.warning(f"Unknown OpenAI model: {model}, using gpt-4o pricing")
+            model = "gpt-4o"
         
         try:
             usage = response.usage

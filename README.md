@@ -8,6 +8,8 @@ Pod-Tenukiは、ポッドキャストの音声ファイルを処理するため�
 4. **要約**: OpenAI APIを使用して文字起こしからポッドキャストのタイトルと説明文を生成
 5. **コスト追跡**: Google Cloud Speech-to-TextとOpenAI APIの使用コストを追跡して表示（使用した分数と料金）
 
+![screen shot](image.png)
+
 ## インストール
 
 ### 前提条件
@@ -302,7 +304,7 @@ OPENAI_API_KEY=your_openai_api_key
 ```
 API使用コスト:
 OpenAI API:
-  - gpt-3.5-turbo: 1234入力トークン, 567出力トークン, $0.0012
+  - gpt-4o: 1234入力トークン, 567出力トークン, $0.0012
 Google Cloud Speech-to-Text API:
   - 音声文字起こし: 30.50分, $0.7320
 合計コスト: $0.7332
