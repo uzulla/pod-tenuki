@@ -219,7 +219,7 @@ def summarize_text(
             summary_file = Path(transcript_file).with_suffix(".summary.md")
         
         # Summarize the transcript
-        title, description, summary_path = summarize_transcript(
+        title, description, topics, summary_path = summarize_transcript(
             transcript_file=transcript_file,
             output_file=str(summary_file),
         )
