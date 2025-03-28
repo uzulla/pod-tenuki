@@ -3,6 +3,12 @@
 .env.*
 !.env.example
 
+# API Keys and credentials
+gc_key.json
+*_key.json
+*.json.key
+credentials*.json
+
 # Python
 __pycache__/
 *.py[cod]
