@@ -1,11 +1,32 @@
 """Configuration utilities for pod-tenuki."""
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-# Load environment variables from .env file
-env_path = Path(__file__).parents[3] / '.env'
-load_dotenv(dotenv_path=env_path)
+# Try to find and load .env file from multiple locations
+possible_env_paths = [
+    Path(__file__).parents[3] / '.env',  # プロジェクトルート
+    Path.cwd() / '.env',                 # カレントディレクトリ
+]
+
+# まず、dotenvの自動検索機能を試す
+dotenv_path = find_dotenv(usecwd=True)
+if dotenv_path:
+    load_dotenv(dotenv_path=dotenv_path)
+    print(f"Found .env file at: {dotenv_path}")
+else:
+    # 自動検索で見つからない場合は手動で探す
+    for env_path in possible_env_paths:
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+            print(f"Loaded .env from: {env_path}")
+            break
+
+# 絶対パスで直接.envファイルをロード（最終手段）
+specific_env_path = "/Users/zishida/dev/pod-tenuki/.env"
+if Path(specific_env_path).exists():
+    load_dotenv(dotenv_path=specific_env_path)
+    print(f"Loaded .env from specific path: {specific_env_path}")
 
 # Auphonic API configuration
 AUPHONIC_API_KEY = os.getenv('AUPHONIC_API_KEY')
