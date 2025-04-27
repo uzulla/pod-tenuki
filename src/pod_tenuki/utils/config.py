@@ -22,12 +22,6 @@ else:
             print(f"Loaded .env from: {env_path}")
             break
 
-# 絶対パスで直接.envファイルをロード（最終手段）
-specific_env_path = "/Users/zishida/dev/pod-tenuki/.env"
-if Path(specific_env_path).exists():
-    load_dotenv(dotenv_path=specific_env_path)
-    print(f"Loaded .env from specific path: {specific_env_path}")
-
 # Auphonic API configuration
 AUPHONIC_API_KEY = os.getenv('AUPHONIC_API_KEY')
 AUPHONIC_API_URL = 'https://auphonic.com/api'
