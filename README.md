@@ -45,7 +45,17 @@ git clone https://github.com/uzulla/pod-tenuki.git
 cd pod-tenuki
 ```
 
-2. パッケージをインストール：
+2. `uv`を使ってパッケージをインストール（推奨）：
+
+```bash
+# uvのインストール（まだインストールしていない場合）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 依存関係のインストール
+uv sync
+```
+
+または、従来の方法でインストール：
 
 ```bash
 pip install -e .
@@ -68,6 +78,14 @@ cp .env.example .env
 
 ### 基本的な使い方
 
+`uv`でインストールした場合：
+
+```bash
+uv run pod-tenuki /path/to/your/audio_file.mp3
+```
+
+従来の方法でインストールした場合：
+
 ```bash
 pod-tenuki /path/to/your/audio_file.mp3
 ```
@@ -79,7 +97,7 @@ pod-tenuki /path/to/your/audio_file.mp3
 
 複数のWAVファイルの処理：
 ```bash
-pod-tenuki /path/to/recording1.wav /path/to/recording2.wav /path/to/recording3.wav
+uv run pod-tenuki /path/to/recording1.wav /path/to/recording2.wav /path/to/recording3.wav
 ```
 
 この場合は以下が実行されます：
@@ -119,24 +137,26 @@ Auphonic、文字起こし、要約でポッドキャスト音声ファイルを
 
 ### 使用例
 
+以下の例では`uv run`を使用していますが、従来の方法でインストールした場合は`uv run`を省略してください。
+
 #### メインCLIツールの使用：
 
 ##### 音声変換のみ：
 
 ```bash
-pod-tenuki --skip-transcription --skip-summarization audio_file.mp3
+uv run pod-tenuki --skip-transcription --skip-summarization audio_file.mp3
 ```
 
 ##### 文字起こしのみ（変換をスキップ）：
 
 ```bash
-pod-tenuki --skip-conversion --skip-summarization audio_file.mp3
+uv run pod-tenuki --skip-conversion --skip-summarization audio_file.mp3
 ```
 
 ##### 複数のWAVファイルを連結して処理：
 
 ```bash
-pod-tenuki recording1.wav recording2.wav recording3.wav
+uv run pod-tenuki recording1.wav recording2.wav recording3.wav
 ```
 
 これにより以下の処理が行われます：
@@ -147,13 +167,13 @@ pod-tenuki recording1.wav recording2.wav recording3.wav
 ##### 複数のWAVファイルの連結と文字起こしのみ：
 
 ```bash
-pod-tenuki --skip-conversion --skip-summarization recording1.wav recording2.wav recording3.wav
+uv run pod-tenuki --skip-conversion --skip-summarization recording1.wav recording2.wav recording3.wav
 ```
 
 ##### 既存の文字起こしを要約：
 
 ```bash
-pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
+uv run pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
 # 注：audio_file.txtが存在することを前提としています
 ```
 
@@ -162,47 +182,47 @@ pod-tenuki --skip-conversion --skip-transcription audio_file.mp3
 ##### 音声変換のみ：
 
 ```bash
-pod-tenuki-convert audio_file.mp3
+uv run pod-tenuki-convert audio_file.mp3
 ```
 
 複数のWAVファイルを連結して変換：
 ```bash
-pod-tenuki-convert recording1.wav recording2.wav recording3.wav
+uv run pod-tenuki-convert recording1.wav recording2.wav recording3.wav
 ```
 
 ##### 文字起こしのみ：
 
 ```bash
-pod-tenuki-transcribe audio_file.mp3
+uv run pod-tenuki-transcribe audio_file.mp3
 ```
 
 複数のWAVファイルを連結して文字起こし：
 ```bash
-pod-tenuki-transcribe recording1.wav recording2.wav recording3.wav
+uv run pod-tenuki-transcribe recording1.wav recording2.wav recording3.wav
 ```
 
 ##### 既存の文字起こしを要約：
 
 ```bash
-pod-tenuki-summarize audio_file.txt
+uv run pod-tenuki-summarize audio_file.txt
 ```
 
 #### 出力ディレクトリの指定：
 
 ```bash
-pod-tenuki --output-dir /path/to/output audio_file.mp3
+uv run pod-tenuki --output-dir /path/to/output audio_file.mp3
 ```
 
 #### 異なるAuphonicプリセットの使用：
 
 ```bash
-pod-tenuki --preset-uuid YOUR_PRESET_UUID audio_file.mp3
+uv run pod-tenuki --preset-uuid YOUR_PRESET_UUID audio_file.mp3
 ```
 
 #### 文字起こしの言語を指定：
 
 ```bash
-pod-tenuki --language en-US audio_file.mp3
+uv run pod-tenuki --language en-US audio_file.mp3
 ```
 
 ## APIキー
