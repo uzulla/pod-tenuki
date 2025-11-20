@@ -3,8 +3,8 @@ requests>=2.32.5
 google-cloud-speech>=2.34.0
 google-cloud-storage>=3.6.0
 openai>=2.8.1
-# Note: google-generativeai is being deprecated. Consider migrating to google-genai>=1.51.0
-google-generativeai>=0.8.3
+# Migrated from google-generativeai (deprecated, EOL: 2025-11-30) to google-genai
+google-genai>=1.51.0
 
 # Environment variables
 python-dotenv>=1.2.1

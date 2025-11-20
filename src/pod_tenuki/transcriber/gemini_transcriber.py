@@ -14,8 +14,7 @@ from typing import Optional, Dict, Any, List
 import wave
 import contextlib
 
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
 
 from pod_tenuki.utils.config import GEMINI_API_KEY
 from pod_tenuki.utils.cost_tracker import cost_tracker
@@ -36,10 +35,10 @@ class GeminiTranscriber:
         self.api_key = api_key or GEMINI_API_KEY
         if not self.api_key:
             raise ValueError("Gemini API key is required")
-        
-        # Configure the Gemini API client
-        genai.configure(api_key=self.api_key)
-        
+
+        # Initialize the Gemini API client with the new SDK
+        self.client = genai.Client(api_key=self.api_key)
+
         # Default model for transcription
         self.model_name = "gemini-1.5-flash"
     
@@ -85,10 +84,10 @@ class GeminiTranscriber:
             
             # Create prompt for transcription
             prompt = f"Please provide a complete and accurate transcript of this audio file. The language is {language_code.split('-')[0]}."
-            
-            # Generate content with the audio bytes
-            model = genai.GenerativeModel(self.model_name)
-            response = model.generate_content(
+
+            # Generate content with the audio bytes using the new SDK
+            response = self.client.models.generate_content(
+                model=self.model_name,
                 contents=[
                     {"text": prompt},
                     {"mime_type": mime_type, "data": audio_bytes}
