@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 開発環境
 
-- Python 3.9-3.13 を使用（pyproject.toml で指定）
+- Python 3.10-3.13 を使用（pyproject.toml で指定）
 - 依存関係管理には `uv` を推奨（`pip3` でも可能）
 - 仮想環境 (.venv) を使用
 - コマンド実行時は常に `python3` を使用（`python` ではない）
