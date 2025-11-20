@@ -64,3 +64,11 @@ output/*
 *.txt
 !requirements.txt
 !README.md
+
+# Test and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+coverage.xml
