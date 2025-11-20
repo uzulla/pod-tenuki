@@ -332,6 +332,82 @@ Google Cloud Speech-to-Text API:
 
 これにより、ポッドキャストファイルの処理に関連するコストを監視できます。
 
+## テスト
+
+このプロジェクトには包括的なユニットテストとインテグレーションテストが含まれています。
+
+### テストの実行
+
+テスト依存関係をインストール：
+
+```bash
+# uvを使用する場合
+uv sync --extra test
+
+# pipを使用する場合
+pip install -e ".[test]"
+```
+
+すべてのテストを実行：
+
+```bash
+# uvを使用する場合
+uv run pytest
+
+# pipを使用する場合
+pytest
+```
+
+特定のテストモジュールを実行：
+
+```bash
+# utilsモジュールのテストのみ
+uv run pytest tests/utils/
+
+# 特定のテストファイル
+uv run pytest tests/utils/test_config.py
+
+# 特定のテストクラスまたはメソッド
+uv run pytest tests/utils/test_config.py::TestConfig::test_validate_config_success
+```
+
+カバレッジレポート付きでテストを実行：
+
+```bash
+uv run pytest --cov=src/pod_tenuki --cov-report=html
+```
+
+マーカーを使用してテストをフィルター：
+
+```bash
+# ユニットテストのみ実行
+uv run pytest -m unit
+
+# インテグレーションテストのみ実行
+uv run pytest -m integration
+
+# 遅いテストをスキップ
+uv run pytest -m "not slow"
+```
+
+### テスト構造
+
+```
+tests/
+├── conftest.py              # 共通のフィクスチャとテスト設定
+├── test_main.py             # メインCLIのテスト
+├── utils/                   # ユーティリティモジュールのテスト
+│   ├── test_config.py
+│   ├── test_cost_tracker.py
+│   └── test_logger.py
+├── audio_converter/         # 音声変換モジュールのテスト
+│   └── test_wav_concat.py
+├── transcriber/             # 文字起こしモジュールのテスト
+│   └── test_google_speech.py
+└── summarizer/              # 要約生成モジュールのテスト
+    └── test_openai_summarizer.py
+```
+
 ## ライセンス
 
 MIT

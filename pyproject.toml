@@ -17,12 +17,18 @@ dependencies = [
     "openai>=2.8.1",
     "python-dotenv>=1.2.1",
     "ffmpeg-python>=0.2.0",
-    "simpleaudio>=1.0.4",
-    "pyaudio>=0.2.14",
     "tqdm>=4.67.1",
 ]
 authors = [
     {name = "Devin AI", email = "devin-ai-integration@users.noreply.github.com"}
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "pytest-env>=1.0.1",
 ]
 
 [project.scripts]
