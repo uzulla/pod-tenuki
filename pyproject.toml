@@ -7,7 +7,7 @@ name = "pod-tenuki"
 version = "0.1.0"
 description = "A tool for processing podcast audio files"
 readme = "README.md"
-requires-python = ">=3.9,<3.14"  # Upper limit due to google-generativeai dependency constraints
+requires-python = ">=3.9,<3.14"
 license = {text = "MIT"}
 dependencies = [
     "requests>=2.32.5",
