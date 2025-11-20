@@ -5,14 +5,15 @@ setup(
     version="0.1.0",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    python_requires=">=3.9",
     install_requires=[
-        "requests>=2.28.0",
-        "google-cloud-speech>=2.17.0",
-        "google-cloud-storage>=2.7.0",
-        "openai>=1.0.0",
-        "python-dotenv>=0.21.0",
+        "requests>=2.32.5",
+        "google-cloud-speech>=2.34.0",
+        "google-cloud-storage>=3.6.0",
+        "openai>=2.8.1",
+        "python-dotenv>=1.2.1",
         "pydub>=0.25.1",
-        "tqdm>=4.64.1",
+        "tqdm>=4.67.1",
     ],
     entry_points={
         "console_scripts": [

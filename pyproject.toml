@@ -7,17 +7,19 @@ name = "pod-tenuki"
 version = "0.1.0"
 description = "A tool for processing podcast audio files"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 dependencies = [
-    "requests>=2.28.0",
-    "google-generativeai>=0.8.0",
-    "openai>=1.0.0",
-    "python-dotenv>=0.21.0",
+    "requests>=2.32.5",
+    "google-cloud-speech>=2.34.0",
+    "google-cloud-storage>=3.6.0",
+    "google-generativeai>=0.8.3",
+    "openai>=2.8.1",
+    "python-dotenv>=1.2.1",
     "ffmpeg-python>=0.2.0",
     "simpleaudio>=1.0.4",
-    "pyaudio>=0.2.13",
-    "tqdm>=4.64.1",
+    "pyaudio>=0.2.14",
+    "tqdm>=4.67.1",
 ]
 authors = [
     {name = "Devin AI", email = "devin-ai-integration@users.noreply.github.com"}

@@ -8,7 +8,7 @@ import os
 import logging
 from typing import Dict, Any, Optional, Tuple
 
-import openai
+from openai import OpenAI
 
 from pod_tenuki.utils.config import OPENAI_API_KEY
 from pod_tenuki.utils.cost_tracker import cost_tracker
@@ -29,9 +29,9 @@ class OpenAISummarizer:
         self.api_key = api_key or OPENAI_API_KEY
         if not self.api_key:
             raise ValueError("OpenAI API key is required")
-        
-        # Set API key for the client
-        openai.api_key = self.api_key
+
+        # Initialize OpenAI client with API key
+        self.client = OpenAI(api_key=self.api_key)
     
     def generate_summary(
         self,
@@ -100,7 +100,7 @@ class OpenAISummarizer:
             """
             
             # Call the OpenAI API with higher temperature for more creative output
-            response = openai.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": "あなたはポッドキャストの専門プロデューサーで、適切なタイトルと要約文を日本語で作成します。内容を正確に把握し、丁寧で簡潔な表現で要約することが得意です。また、コンテンツから重要なトピックを抽出して、わかりやすい箇条書きリストを作成することにも長けています。情報を正確に伝えることを優先し、適切な形式でまとめてください。重要な要件として、要約文の最後は必ず「本人曰く、全ての話はフィクションであることを留意してお楽しみください。」という一文で終えてください。"},
