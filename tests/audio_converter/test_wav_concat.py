@@ -151,9 +151,12 @@ class TestWavConcat:
         mock_output = MagicMock()
         mock_ffmpeg.input.return_value = mock_input
         mock_ffmpeg.output.return_value = mock_output
-        mock_ffmpeg.run.side_effect = Exception("General error")
+        # Mock ffmpeg.Error as a proper exception class
+        mock_ffmpeg.Error = type('MockFFmpegError', (Exception,), {})
+        # Use RuntimeError which will be caught by the general Exception handler
+        mock_ffmpeg.run.side_effect = RuntimeError("General error")
 
-        # Should raise RuntimeError
+        # Should raise RuntimeError with wrapped message
         with pytest.raises(RuntimeError, match="Error concatenating WAV files"):
             concatenate_wav_files(
                 [sample_wav_files[0]],

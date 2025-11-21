@@ -143,8 +143,12 @@ class TestMainIntegration:
         """Test running the full pipeline."""
         from pod_tenuki import main as main_module
 
-        # Mock outputs
-        mock_process_audio.return_value = [str(tmp_path / "converted.mp3")]
+        # Mock outputs - process_audio_file returns (files_list, metadata_dict)
+        # Create transcript file so summarize step runs
+        transcript_path = tmp_path / "transcript.txt"
+        transcript_path.write_text("Test transcript")
+        
+        mock_process_audio.return_value = ([str(tmp_path / "converted.mp3")], {})
         mock_transcribe.return_value = str(tmp_path / "transcript.txt")
         mock_summarize.return_value = (
             "タイトル",
@@ -196,6 +200,10 @@ class TestMainIntegration:
         from pod_tenuki import main as main_module
 
         # Mock outputs
+        # Create transcript file so summarize step runs
+        transcript_path = tmp_path / "transcript.txt"
+        transcript_path.write_text("Test transcript")
+        
         mock_concat.return_value = str(tmp_path / "concatenated.mp3")
         mock_transcribe.return_value = str(tmp_path / "transcript.txt")
         mock_summarize.return_value = (
@@ -263,16 +271,17 @@ class TestMainIntegration:
         mock_process_audio.assert_not_called()
 
     @patch('pod_tenuki.main.validate_config')
-    def test_main_validation_error(self, mock_validate):
+    @patch('pod_tenuki.main.validate_config')
+    def test_main_validation_error(self, mock_validate, sample_audio_file):
         """Test handling of configuration validation errors."""
         from pod_tenuki import main as main_module
 
         # Mock validation error
         mock_validate.side_effect = ValueError("Missing config")
 
-        # Mock arguments
+        # Mock arguments - use sample_audio_file to avoid file not found error
         args = Namespace(
-            audio_files=["audio.mp3"],
+            audio_files=[sample_audio_file],
             preset_uuid="test-uuid",
             preset_name=None,
             output_dir=None,
@@ -285,6 +294,6 @@ class TestMainIntegration:
         )
 
         with patch('pod_tenuki.main.parse_arguments', return_value=args):
-            # Should exit with error
-            with pytest.raises(SystemExit):
-                main_module.main()
+            # Should return 1 (error code) instead of raising SystemExit
+            result = main_module.main()
+            assert result == 1

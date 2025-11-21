@@ -96,7 +96,8 @@ class TestLogger:
 
     def test_add_file_handler_custom_level(self, temp_dir):
         """Test adding a file handler with custom level."""
-        logger = setup_logger(name="test_logger_level", level=logging.INFO)
+        # Logger needs to be at DEBUG level for debug messages to be processed
+        logger = setup_logger(name="test_logger_level", level=logging.DEBUG)
         log_file = temp_dir / "test.log"
 
         # Add file handler with DEBUG level
