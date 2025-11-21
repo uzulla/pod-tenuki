@@ -110,7 +110,8 @@ class TestOpenAISummarizer:
         # Verify cost tracking with correct model
         mock_cost_tracker.track_openai_usage.assert_called_once()
         track_call_args = mock_cost_tracker.track_openai_usage.call_args
-        assert track_call_args[1]['model'] == "gpt-4"
+        # model is passed as the second positional argument
+        assert track_call_args[0][1] == "gpt-4"
 
     @patch('pod_tenuki.summarizer.openai_summarizer.OpenAI')
     def test_generate_summary_api_error(self, mock_openai_class):

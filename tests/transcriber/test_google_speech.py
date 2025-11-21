@@ -208,8 +208,8 @@ class TestGoogleSpeechClient:
         mock_operation.result.return_value = mock_response
         client.speech_client.long_running_recognize.return_value = mock_operation
 
-        # Mock _get_audio_duration
-        with patch.object(client, '_get_audio_duration', return_value=60.0):
+        # Mock os.path.getsize for cost estimation (since _get_audio_duration doesn't exist)
+        with patch('pod_tenuki.transcriber.google_speech.os.path.getsize', return_value=10*1024*1024):
             # Transcribe
             transcript = client.transcribe_long_audio(
                 sample_audio_file,
