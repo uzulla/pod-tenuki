@@ -25,6 +25,14 @@ authors = [
     {name = "Devin AI", email = "devin-ai-integration@users.noreply.github.com"}
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "pytest-env>=1.0.1",
+]
+
 [project.scripts]
 pod-tenuki = "pod_tenuki.main:main"
 pod-tenuki-convert = "pod_tenuki.cli.convert:main"
